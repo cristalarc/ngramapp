@@ -61,7 +61,9 @@ if st.button('Perform n-gram analysis'):
         df = pd.read_excel(uploaded_file, sheet_name='SP Search Term Report')
         pattern = re.compile(r'B0[A-Z0-9]{8}', re.IGNORECASE)
         df['ASIN'] = df['Campaign Name (Informational only)'].apply(lambda x: pattern.search(x).group(0) if pattern.search(x) else None)
-        df_filtered = df[~df['Customer Search Term'].str.lower().apply(lambda x: any(brand in x for brand in branded_terms))]
+        # Handle case-insensitive column name matching for "Customer Search Term"
+        search_term_col = [col for col in df.columns if col.lower() == 'customer search term'][0]
+        df_filtered = df[~df[search_term_col].str.lower().apply(lambda x: any(brand in x for brand in branded_terms))]
         df_filtered = df_filtered[df_filtered['ASIN'].isin(asins)]
         
         monograms_aggregated = aggregate_ngrams(df_filtered, lambda x: x, stop_words)
